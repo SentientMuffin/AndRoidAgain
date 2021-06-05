@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AndRoidAgain</string>
+    <string name="dummy_button">Start Game</string>
+    <string name="dummy_content">And Roid &amp; Again</string>
+</resources>
