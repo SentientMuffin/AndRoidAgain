@@ -1,0 +1,15 @@
+{
+  "FileContentKeywordValidation": {
+    "Keywords": [
+      {
+        "Targets": "+Switch",
+        "files": [
+          "Editor/AndroidTools/AndroidTools.cs"
+        ],
+        "patterns": [
+          "\\\"llvm-nm\\\""
+        ]
+      }
+    ]
+  }
+}
