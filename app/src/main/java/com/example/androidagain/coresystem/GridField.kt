@@ -5,54 +5,72 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 
-class MainField(var mainDimension: Int) {
+class GridField(var xDimension: Int, var yDimension: Int, var row: Int, var col: Int) {
 
-    val bitmap: Bitmap = Bitmap.createBitmap(mainDimension, mainDimension, Bitmap.Config.ARGB_8888)
+    val bitmap: Bitmap = Bitmap.createBitmap(xDimension, yDimension, Bitmap.Config.ARGB_8888)
     val canvas: Canvas = Canvas(bitmap)
     var padding: Float = 40F
 
-    private var mainFloat: Float = mainDimension.toFloat()
+    private var xFloat: Float = xDimension.toFloat()
+    private var yFloat: Float = yDimension.toFloat()
     private val paint = Paint()
 
-    fun setup() {
+    init {
         defineBorders()
         defineGrids()
     }
 
+    fun applyLayeredColorUnit(colorUnit: LayeredColorUnit) {
+        val (x, y) = colorUnit.gridXY
+        for (index in 0 until colorUnit.layerState.size - 1) {
+            if (colorUnit.layerState[index] != null) {
+                drawColorLayer(colorUnit.layerState[index]!!, x, y, index)
+            }
+        }
+    }
+
+    // TODO: Grids should be contained within the border..
     private fun defineBorders() {
         useBorderPaintStyle()
-        drawRectContainer(0F, 0F, mainFloat, mainFloat, padding)
+        drawRectContainer(0F, 0F, xFloat, yFloat, padding)
     }
 
     private fun defineGrids() {
         // Local Var
-        val gridTotalSpace = mainFloat / 3
-        var gridPadding = gridTotalSpace * 5F / 100F
+        val xGridTotalSpace = xFloat / col
+        val yGridTotalSpace = yFloat / row
+
+        var xGridPadding = xGridTotalSpace * 5F / 100F
+        var yGridPadding = yGridTotalSpace * 5F / 100F
 
         // Method
         useGridPaintStyle()
 
         // calculate startXY, accounting for stacking padding inbetween and absence of this at sides
-        val gridUsableSpace = mainFloat - (4 * gridPadding)
-        val gridDimension = gridUsableSpace / 3F
-        gridPadding /= 2F
+        val xGridUsableSpace = xFloat - (4 * xGridPadding)
+        val yGridUsableSpace = yFloat - (4 * yGridPadding)
+
+        val xGridDimension = xGridUsableSpace / col
+        val yGridDimension = yGridUsableSpace / row
+        xGridPadding /= 2F
+        yGridPadding /= 2F
 
         // default drawing 9 grids, might want to change later
         // hardcoding 9 for now
-        for (row in 0..2) {
-            for (col in 0..2) {
+        for (rowIter in 0 until row) {
+            for (colIter in 0 until col) {
                 // No idea why this works... but it does
                 drawRectContainer(
-                    col * (gridDimension + 2 * gridPadding) + 2 * gridPadding,
-                    row * (gridDimension + 2 * gridPadding) + 2 * gridPadding,
-                    gridDimension, gridDimension, gridPadding
+                    colIter * (xGridDimension + 2 * xGridPadding) + 2 * xGridPadding,
+                    rowIter * (yGridDimension + 2 * yGridPadding) + 2 * yGridPadding,
+                    xGridDimension, xGridDimension, xGridPadding
                 )
             }
         }
     }
 
     private fun useBorderPaintStyle() {
-        paint.color = Color.TRANSPARENT
+        paint.color = Color.RED
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 5F
         paint.isAntiAlias = true
@@ -63,6 +81,16 @@ class MainField(var mainDimension: Int) {
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 10F
         paint.isAntiAlias = true
+    }
+
+    private fun useColorToPainLayer(color: Int) {
+        paint.color = color
+        paint.strokeWidth = 25F
+    }
+
+    private fun drawColorLayer(color: Int, gridX: Int, gridY: Int, layer: Int) {
+        useColorToPainLayer(color)
+
     }
 
     /*

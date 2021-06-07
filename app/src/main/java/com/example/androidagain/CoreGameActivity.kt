@@ -9,7 +9,8 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.androidagain.coresystem.MainField
+import com.example.androidagain.coresystem.CoreSystem
+import com.example.androidagain.coresystem.GridField
 import com.example.androidagain.databinding.CoreGameBinding
 import kotlin.math.min
 
@@ -36,14 +37,16 @@ class CoreGameActivity : AppCompatActivity() {
 
     private fun renderPlayingField() {
         renderField = binding.renderField
+        renderRng = binding.renderRng
 
-        // Create the bitmap first
-        val minDimension = min(renderField.width, renderField.height)
-        val mainField = MainField(minDimension)
-        mainField.setup()
+        val coreSystem = CoreSystem(
+            3, 4,
+            renderField.width, renderField.height, renderRng.width, renderRng.height
+        )
 
         // set bitmap as background to ImageView
-        renderField.background = BitmapDrawable(resources, mainField.bitmap)
+        renderField.background = BitmapDrawable(resources, coreSystem.mainField.bitmap)
+        renderRng.background = BitmapDrawable(resources, coreSystem.rngField.bitmap)
     }
 
     private fun hideSystemUI() {
