@@ -43,6 +43,9 @@ class CoreGameActivity : AppCompatActivity() {
             3, 4,
             renderField.width, renderField.height, renderRng.width, renderRng.height
         )
+        for (colorUnit in coreSystem.retrievable) {
+            coreSystem.rngField.applyLayeredColorUnit(colorUnit!!)
+        }
 
         // set bitmap as background to ImageView
         renderField.background = BitmapDrawable(resources, coreSystem.mainField.bitmap)

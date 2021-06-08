@@ -19,8 +19,8 @@ class LayeredColorUnit private constructor(
     // Randomize the number of layers, from 1 to max, cannot generate 0, that would be empty
     // unit fill direction: out -> in, index wise, always fill low to high
     init {
-        val layerCount = Random.nextInt(1, maxLayer)
-        for (index in 0 until layerCount - 1) {
+        val layerCount = Random.nextInt(0, maxLayer)
+        for (index in 0 until layerCount + 1) {
             layerState[index] = colorList.random()
         }
     }
@@ -31,6 +31,7 @@ class LayeredColorUnit private constructor(
 
     companion object StaticFactory {
         var globalMaxLayer = 4
+        var globalLayerSpacing = 10F
         fun new(colorList: List<Int>, x: Int, y: Int): LayeredColorUnit =
             LayeredColorUnit(colorList, globalMaxLayer, x, y)
     }

@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import androidx.constraintlayout.helper.widget.Layer
+import kotlin.properties.Delegates
 
 class GridField(var xDimension: Int, var yDimension: Int, var row: Int, var col: Int) {
 
@@ -13,10 +15,12 @@ class GridField(var xDimension: Int, var yDimension: Int, var row: Int, var col:
 
     private var xFloat: Float = xDimension.toFloat()
     private var yFloat: Float = yDimension.toFloat()
+    private lateinit var sharedXYPadding: Pair<Float, Float>
+    private lateinit var gridDimension: Pair<Float, Float>
     private val paint = Paint()
 
     init {
-        defineBorders()
+//        defineBorders()
         defineGrids()
     }
 
@@ -24,7 +28,17 @@ class GridField(var xDimension: Int, var yDimension: Int, var row: Int, var col:
         val (x, y) = colorUnit.gridXY
         for (index in 0 until colorUnit.layerState.size - 1) {
             if (colorUnit.layerState[index] != null) {
-                drawColorLayer(colorUnit.layerState[index]!!, x, y, index)
+                // Locate starting (x, y)
+                var startX = x * (sharedXYPadding.first + gridDimension.first)
+                var startY = y * (sharedXYPadding.second + gridDimension.second)
+
+                // Apply paint style and call draw method
+                useColorToPainLayer(colorUnit.layerState[index]!!)
+                drawColorLayer(
+                    startX, startY,
+                    gridDimension.first, gridDimension.second,
+                    index, LayeredColorUnit.globalMaxLayer, LayeredColorUnit.globalLayerSpacing
+                )
             }
         }
     }
@@ -39,9 +53,9 @@ class GridField(var xDimension: Int, var yDimension: Int, var row: Int, var col:
         // Local Var
         val xGridTotalSpace = xFloat / col
         val yGridTotalSpace = yFloat / row
-
-        var xGridPadding = xGridTotalSpace * 5F / 100F
-        var yGridPadding = yGridTotalSpace * 5F / 100F
+        val xGridPadding = xGridTotalSpace * 5F / 100F
+        val yGridPadding = yGridTotalSpace * 5F / 100F
+        sharedXYPadding = Pair(xGridPadding, yGridPadding)
 
         // Method
         useGridPaintStyle()
@@ -52,8 +66,7 @@ class GridField(var xDimension: Int, var yDimension: Int, var row: Int, var col:
 
         val xGridDimension = xGridUsableSpace / col
         val yGridDimension = yGridUsableSpace / row
-        xGridPadding /= 2F
-        yGridPadding /= 2F
+        gridDimension = Pair(xGridDimension, yGridDimension)
 
         // default drawing 9 grids, might want to change later
         // hardcoding 9 for now
@@ -61,16 +74,16 @@ class GridField(var xDimension: Int, var yDimension: Int, var row: Int, var col:
             for (colIter in 0 until col) {
                 // No idea why this works... but it does
                 drawRectContainer(
-                    colIter * (xGridDimension + 2 * xGridPadding) + 2 * xGridPadding,
-                    rowIter * (yGridDimension + 2 * yGridPadding) + 2 * yGridPadding,
-                    xGridDimension, xGridDimension, xGridPadding
+                    colIter * (xGridDimension + xGridPadding) + xGridPadding,
+                    rowIter * (yGridDimension + yGridPadding) + yGridPadding,
+                    xGridDimension, xGridDimension, xGridPadding / 2F
                 )
             }
         }
     }
 
     private fun useBorderPaintStyle() {
-        paint.color = Color.RED
+        paint.color = Color.TRANSPARENT
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 5F
         paint.isAntiAlias = true
@@ -85,12 +98,43 @@ class GridField(var xDimension: Int, var yDimension: Int, var row: Int, var col:
 
     private fun useColorToPainLayer(color: Int) {
         paint.color = color
-        paint.strokeWidth = 25F
+        paint.strokeWidth = 10F
     }
 
-    private fun drawColorLayer(color: Int, gridX: Int, gridY: Int, layer: Int) {
-        useColorToPainLayer(color)
+    private fun drawColorLayer(
+        startX: Float, startY: Float,
+        width: Float, height: Float,
+        layer: Int, maxLayer: Int, layerSpacing: Float
+    ) {
 
+        // determining how to the layer
+        var layerThickness = Pair(
+            (width / maxLayer) - layerSpacing,
+            (height / maxLayer) - layerSpacing
+        )
+        var layerWidth = (width * layer / maxLayer) - layerSpacing
+        var layerHeight = (height * layer / maxLayer) - layerSpacing
+
+        val lineStartX = layer * (startX + layerSpacing)
+        val lineStartY = layer * (startY + layerSpacing)
+
+        // layer starts at 0, ends at globalMaxLayer - 1
+        canvas.drawLine(
+            lineStartX, lineStartY,
+            lineStartX + layerWidth, lineStartY, paint
+        )
+        canvas.drawLine(
+            lineStartX, lineStartY,
+            lineStartX, lineStartY + layerHeight, paint
+        )
+        canvas.drawLine(
+            lineStartX + layerWidth, lineStartY,
+            lineStartX + layerWidth, lineStartY + layerHeight, paint
+        )
+        canvas.drawLine(
+            lineStartX, lineStartY + layerHeight,
+            lineStartX + layerWidth, lineStartY + layerHeight, paint
+        )
     }
 
     /*
